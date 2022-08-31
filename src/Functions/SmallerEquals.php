@@ -4,24 +4,14 @@ declare(strict_types=1);
 
 namespace EDT\Querying\Functions;
 
-use EDT\Querying\Contracts\FunctionInterface;
-
 /**
- * @template-implements FunctionInterface<bool>
+ * @template-extends AbstractMultiFunction<bool, mixed, array{0: mixed, 1: mixed}>
  */
-class SmallerEquals implements FunctionInterface
+class SmallerEquals extends AbstractMultiFunction
 {
-    use MultiFunctionTrait;
-
-    /**
-     * @param FunctionInterface<mixed> $left
-     * @param FunctionInterface<mixed> $right
-     */
-    public function __construct(FunctionInterface $left, FunctionInterface $right)
+    protected function reduce(array $functionResults): bool
     {
-        $this->setFunctions($left, $right);
-        $this->callback = static function ($leftValue, $rightValue): bool {
-            return $leftValue <= $rightValue;
-        };
+        [$leftValue, $rightValue] = $functionResults;
+        return $leftValue <= $rightValue;
     }
 }

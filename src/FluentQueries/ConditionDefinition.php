@@ -57,6 +57,7 @@ class ConditionDefinition
 
     /**
      * @param FunctionInterface<bool> $condition
+     * @return $this
      */
     protected function add(FunctionInterface $condition): self
     {
@@ -65,6 +66,8 @@ class ConditionDefinition
     }
 
     /**
+     * @param array<int|string, mixed> $values
+     *
      * @return $this
      */
     public function propertyHasAnyOfValues(array $values, string $property, string ...$properties): self
@@ -73,6 +76,8 @@ class ConditionDefinition
     }
 
     /**
+     * @param array<int|string, mixed> $values
+     *
      * @return $this
      */
     public function propertyHasNotAnyOfValues(array $values, string $property, string ...$properties): self
@@ -128,6 +133,8 @@ class ConditionDefinition
     }
 
     /**
+     * @param mixed $value
+     *
      * @return $this
      */
     public function propertyHasValue($value, string $property, string ...$properties): self
@@ -136,6 +143,9 @@ class ConditionDefinition
     }
 
     /**
+     * @param mixed $min
+     * @param mixed $max
+     *
      * @return $this
      */
     public function propertyBetweenValuesInclusive($min, $max, string $property, string ...$properties): self
@@ -144,6 +154,9 @@ class ConditionDefinition
     }
 
     /**
+     * @param mixed $min
+     * @param mixed $max
+     *
      * @return $this
      */
     public function propertyNotBetweenValuesInclusive($min, $max, string $property, string ...$properties): self
@@ -160,6 +173,8 @@ class ConditionDefinition
     }
 
     /**
+     * @param mixed $value
+     *
      * @return $this
      */
     public function valueGreaterThan($value, string $property, string ...$properties): self
@@ -168,6 +183,8 @@ class ConditionDefinition
     }
 
     /**
+     * @param mixed $value
+     *
      * @return $this
      */
     public function valueGreaterEqualsThan($value, string $property, string ...$properties): self
@@ -176,6 +193,8 @@ class ConditionDefinition
     }
 
     /**
+     * @param mixed $value
+     *
      * @return $this
      */
     public function valueSmallerThan($value, string $property, string ...$properties): self
@@ -184,6 +203,8 @@ class ConditionDefinition
     }
 
     /**
+     * @param mixed $value
+     *
      * @return $this
      */
     public function valueSmallerEqualsThan($value, string $property, string ...$properties): self
@@ -208,6 +229,8 @@ class ConditionDefinition
     }
 
     /**
+     * @param array<int|string, mixed> $values
+     *
      * @return $this
      */
     public function allValuesPresentInMemberListProperties(array $values, string $property, string ...$properties): self
@@ -216,6 +239,8 @@ class ConditionDefinition
     }
 
     /**
+     * @param mixed $value
+     *
      * @return $this
      */
     public function propertyHasNotValue($value, string $property, string ...$properties): self

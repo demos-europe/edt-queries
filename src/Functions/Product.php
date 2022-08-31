@@ -4,25 +4,13 @@ declare(strict_types=1);
 
 namespace EDT\Querying\Functions;
 
-use EDT\Querying\Contracts\FunctionInterface;
-
 /**
- * @template-implements FunctionInterface<numeric>
+ * @template-extends AbstractMultiFunction<numeric, numeric, array<int, mixed>>
  */
-class Product implements FunctionInterface
+class Product extends AbstractMultiFunction
 {
-    use MultiFunctionTrait;
-
-    /**
-     * @param FunctionInterface<numeric> $firstFactor
-     * @param FunctionInterface<numeric> $secondFactor
-     * @param FunctionInterface<numeric> ...$additionalFactors
-     */
-    public function __construct(FunctionInterface $firstFactor, FunctionInterface $secondFactor, FunctionInterface ...$additionalFactors)
+    protected function reduce(array $functionResults)
     {
-        $this->setFunctions($firstFactor, $secondFactor, ...$additionalFactors);
-        $this->callback = static function (...$factors) {
-            return array_product($factors);
-        };
+        return array_product($functionResults);
     }
 }

@@ -9,13 +9,10 @@ use EDT\Querying\Utilities\Iterables;
 use function count;
 
 /**
- * This trait is to be used when an implementation of {@link FunctionInterface} invokes
+ * This class is to be used when an implementation of {@link FunctionInterface} invokes
  * multiple other {@link FunctionInterface}s.
  *
- * **Make sure to invoke the {@link FunctionBasedTrait::setFunctions()} method before using
- * any methods provided by the trait.**
- *
- * This trait provides a {@link FunctionInterface::apply} implementation that takes a flat list of
+ * This class provides a {@link FunctionInterface::apply} implementation that takes a flat list of
  * parameters intended for the "parent" function and splits this list up so that
  * the right ones are passed into the "child" functions.
  *
@@ -24,18 +21,14 @@ use function count;
  * into the parent function. Otherwise, the behavior is undefined.
  *
  * @template T
+ * @template I
+ * @template-extends AbstractFunction<T, I>
+ * @template X of array
+ *
+ * @internal
  */
-trait MultiFunctionTrait
+abstract class AbstractMultiFunction extends AbstractFunction
 {
-    use FunctionBasedTrait;
-    /**
-     * @var callable(...mixed): T
-     */
-    private $callback;
-
-    /**
-     * @return T
-     */
     public function apply(array $propertyValues)
     {
         $functionCount = count($this->functions);
@@ -44,6 +37,14 @@ trait MultiFunctionTrait
         $functionResults = array_map(static function (FunctionInterface $function, array $functionParams) {
             return $function->apply($functionParams);
         }, $this->functions, $nestedPropertyValues);
-        return ($this->callback)(...$functionResults);
+
+        return $this->reduce($functionResults);
     }
+
+    /**
+     * @param X $functionResults
+     *
+     * @return T
+     */
+    protected abstract function reduce(array $functionResults);
 }

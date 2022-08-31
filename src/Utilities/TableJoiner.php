@@ -48,7 +48,7 @@ class TableJoiner
      *  ['text2', 'nameB'],
      *  ['text3', 'nameB']]
      *
-     * If one of the authors has for some reason 2 names (eg. real and a pseudonym)
+     * If one of the authors has for some reason 2 names (e.g. real and a pseudonym)
      * then 9 values will be returned
      * [['text1', 'nameA1'],
      *  ['text2', 'nameA1'],
@@ -60,7 +60,6 @@ class TableJoiner
      *  ['text2', 'nameA2'],
      *  ['text3', 'nameA2']]
      *
-     * @param mixed $target
      * @return mixed[][]
      */
     public function getValueRows(object $target, PropertyPathAccessInterface ...$propertyPaths): array
@@ -79,19 +78,15 @@ class TableJoiner
                 return $propertyPath;
             }
 
-            if ($propertyPath instanceof PropertyPathAccessInterface) {
-                if (null !== $propertyPath->getContext()) {
-                    throw new InvalidArgumentException("Custom path contexts are not supported in PHP evaluation yet.");
-                }
-
-                return $this->propertyAccessor->getValuesByPropertyPath(
-                    $target,
-                    $propertyPath->getAccessDepth(),
-                    ...iterator_to_array($propertyPath)
-                );
+            if (null !== $propertyPath->getContext()) {
+                throw new InvalidArgumentException("Custom path contexts are not supported in PHP evaluation yet.");
             }
 
-            throw new InvalidArgumentException($propertyPath);
+            return $this->propertyAccessor->getValuesByPropertyPath(
+                $target,
+                $propertyPath->getAccessDepth(),
+                ...iterator_to_array($propertyPath)
+            );
         }, $propertyPaths);
 
         return $this->cartesianProduct($valuesOfPropertyPaths);
@@ -123,7 +118,7 @@ class TableJoiner
         $rightColumn = array_pop($columns);
         $product = $this->cartesianProductRecursive($rightColumn, ...$columns);
 
-        return $this->reAddEmptyColumnsAsNull($product, $emptyColumns);
+        return $this->reAddEmptyColumnsAsNull($product, array_keys($emptyColumns));
     }
 
     /**
@@ -171,7 +166,7 @@ class TableJoiner
      *
      * we get a table with r * l rows and k + 1 columns.
      *
-     * However this is only done for a non-reference column. If the $rightColumn
+     * However, this is only done for a non-reference column. If the $rightColumn
      * references another column we simply de-reference the value and add it, meaning
      * the result is a table with r rows and k + 1 columns.
      *
@@ -206,7 +201,7 @@ class TableJoiner
      */
     private function addValueToRows(array $table, $value): array
     {
-        array_walk($table, static function (array &$row) use ($value) {
+        array_walk($table, static function (array &$row) use ($value): void {
             $row[] = $value;
         });
 
@@ -219,7 +214,7 @@ class TableJoiner
      */
     private function addReferenceToRows(array $table, int $reference): array
     {
-        array_walk($table, static function (array &$row) use ($reference) {
+        array_walk($table, static function (array &$row) use ($reference): void {
             $row[] = $row[$reference];
         });
 
@@ -256,14 +251,15 @@ class TableJoiner
      * Re-add the previously removed empty columns by adding null values into each row.
      *
      * @param array<int,array<int,mixed>|int> $array
-     * @param array<int,array> $emptyColumns
+     * @param array<int, int> $emptyColumnIndices
+     *
      * @return array<int,array<int,mixed>|int>
      */
-    private function reAddEmptyColumnsAsNull(array $array, array $emptyColumns): array
+    private function reAddEmptyColumnsAsNull(array $array, array $emptyColumnIndices): array
     {
-        array_walk($emptyColumns, static function (array $v, int $index) use (&$array): void {
+        array_map(static function (int $index) use (&$array): void {
             Iterables::insertValue($array, $index, null);
-        });
+        }, $emptyColumnIndices);
 
         return $array;
     }
