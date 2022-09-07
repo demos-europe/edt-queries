@@ -6,14 +6,13 @@ namespace EDT\Querying\Contracts;
 
 /**
  * @template I
- * @template F of FunctionInterface<bool>
  */
 interface ConditionParserInterface
 {
     /**
      * @param I $condition
      *
-     * @return F
+     * @return FunctionInterface<bool>
      */
     public function parseCondition($condition): FunctionInterface;
 }
