@@ -7,23 +7,32 @@ namespace EDT\Querying\FluentQueries;
 use EDT\Querying\Contracts\SortMethodFactoryInterface;
 use EDT\Querying\Contracts\SortMethodInterface;
 
+/**
+ * @template S of \EDT\Querying\Contracts\PathsBasedInterface
+ */
 class SortDefinition
 {
     /**
-     * @var array<int,SortMethodInterface>
+     * @var list<S>
      */
     private $sortMethods = [];
     /**
-     * @var SortMethodFactoryInterface
+     * @var SortMethodFactoryInterface<S>
      */
     private $sortMethodFactory;
 
+    /**
+     * @param SortMethodFactoryInterface<S> $sortMethodFactory
+     */
     public function __construct(SortMethodFactoryInterface $sortMethodFactory)
     {
         $this->sortMethodFactory = $sortMethodFactory;
     }
 
     /**
+     * @param non-empty-string $property
+     * @param non-empty-string ...$properties
+     *
      * @return $this
      */
     public function propertyAscending(string $property, string ...$properties): self
@@ -33,6 +42,9 @@ class SortDefinition
     }
 
     /**
+     * @param non-empty-string $property
+     * @param non-empty-string ...$properties
+     *
      * @return $this
      */
     public function propertyDescending(string $property, string ...$properties): self
@@ -42,7 +54,7 @@ class SortDefinition
     }
 
     /**
-     * @return array<int, SortMethodInterface>
+     * @return list<S>
      */
     public function getSortMethods(): array
     {

@@ -20,7 +20,7 @@ use function array_slice;
  *
  * @template T of object
  * @template K of int|string
- * @template-implements ObjectProviderInterface<T>
+ * @template-implements ObjectProviderInterface<FunctionInterface<bool>, SortMethodInterface, T>
  */
 class PrefilledObjectProvider implements ObjectProviderInterface
 {
@@ -28,27 +28,31 @@ class PrefilledObjectProvider implements ObjectProviderInterface
      * @var array<K,T>
      */
     private $prefilledArray;
+
     /**
      * @var ConditionEvaluator
      */
     private $conditionEvaluator;
+
     /**
      * @var Sorter
      */
     private $sorter;
 
     /**
-     * @param array<K,T> $prefilledArray
+     * @param array<K, T>             $prefilledArray
+     * @param ConditionEvaluator|null $conditionEvaluator
      */
-    public function __construct(PropertyAccessorInterface $propertyAccessor, array $prefilledArray)
+    // TODO: refactor default away
+    public function __construct(PropertyAccessorInterface $propertyAccessor, array $prefilledArray, ConditionEvaluator $conditionEvaluator = null)
     {
         $this->prefilledArray = $prefilledArray;
-        $this->conditionEvaluator = new ConditionEvaluator($propertyAccessor);
+        $this->conditionEvaluator = $conditionEvaluator ?? new ConditionEvaluator($propertyAccessor);
         $this->sorter = new Sorter($propertyAccessor);
     }
 
     /**
-     * @return array<K,T>
+     * @return array<K, T>
      *
      * @inheritDoc
      */
@@ -63,9 +67,9 @@ class PrefilledObjectProvider implements ObjectProviderInterface
     }
 
     /**
-     * @param array<K,T> $list
-     * @param array<int,SortMethodInterface> $sortMethods
-     * @return array<K,T>
+     * @param array<K, T> $list
+     * @param list<SortMethodInterface> $sortMethods
+     * @return array<K, T>
      *
      * @throws SortException
      */
@@ -79,8 +83,9 @@ class PrefilledObjectProvider implements ObjectProviderInterface
     }
 
     /**
-     * @param array<K,T> $list
-     * @param array<int,FunctionInterface<bool>> $conditions
+     * @param array<K, T>                   $list
+     * @param list<FunctionInterface<bool>> $conditions
+     *
      * @return array<K,T>
      */
     protected function filter(array $list, array $conditions): array
@@ -93,8 +98,8 @@ class PrefilledObjectProvider implements ObjectProviderInterface
     }
 
     /**
-     * @param array<K,T> $list
-     * @return array<K,T>
+     * @param array<K, T> $list
+     * @return array<K, T>
      * @throws SliceException
      */
     protected function slice(array $list, int $offset, ?int $limit): array

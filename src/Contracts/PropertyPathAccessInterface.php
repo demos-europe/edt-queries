@@ -41,9 +41,11 @@ interface PropertyPathAccessInterface extends PropertyPathInterface
     /**
      * Changes the path of this instance.
      *
+     * @param non-empty-list<non-empty-string> $path
+     *
      * @throws PathException
      */
-    public function setPath(string $property, string ...$properties): void;
+    public function setPath(array $path): void;
 
     public function getSalt(): string;
 

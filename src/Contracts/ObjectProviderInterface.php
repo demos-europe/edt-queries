@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace EDT\Querying\Contracts;
 
 /**
+ * @template C of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template S of \EDT\Querying\Contracts\PathsBasedInterface
  * @template T of object
  */
 interface ObjectProviderInterface
 {
     /**
-     * @param array<int,FunctionInterface<bool>> $conditions
-     * @param array<int,SortMethodInterface> $sortMethods
+     * @param list<C> $conditions
+     * @param list<S> $sortMethods
      *
      * @return iterable<T>
      *
