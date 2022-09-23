@@ -28,17 +28,24 @@ class Sorter
     }
 
     /**
-     * @param list<object> $arrayToSort
+     * @template K of int|string
+     * @template V of object
+     *
+     * @param array<K, V>                         $arrayToSort
+     * @param non-empty-list<SortMethodInterface> $sortMethods
+     *
+     * @return array<K, V>
+     *
      * @throws SortException
      */
-    public function sortArray(array &$arrayToSort, SortMethodInterface ...$sortMethods): void
+    public function sortArray(array $arrayToSort, array $sortMethods): array
     {
         try {
             usort($arrayToSort, function (object $valueA, object $valueB) use ($sortMethods): int {
                 foreach ($sortMethods as $sortMethod) {
                     $propertyPaths = PathInfo::getPropertyPaths($sortMethod);
-                    $propertyValuesRowsA = $this->tableJoiner->getValueRows($valueA, ...$propertyPaths);
-                    $propertyValuesRowsB = $this->tableJoiner->getValueRows($valueB, ...$propertyPaths);
+                    $propertyValuesRowsA = $this->tableJoiner->getValueRows($valueA, $propertyPaths);
+                    $propertyValuesRowsB = $this->tableJoiner->getValueRows($valueB, $propertyPaths);
                     /**
                      * Sorting by relationships is not supported yet as it is not as easy to implement as one might think.
                      * Which of the values should be used for the comparison. See also (basically) the same problem in SQL:
@@ -54,8 +61,10 @@ class Sorter
 
                 return 0;
             });
+
+            return $arrayToSort;
         } catch (Throwable $exception) {
-            throw SortException::forCountAndMethods($exception, count($arrayToSort), ...$sortMethods);
+            throw SortException::forCountAndMethods($exception, count($arrayToSort), $sortMethods);
         }
     }
 }

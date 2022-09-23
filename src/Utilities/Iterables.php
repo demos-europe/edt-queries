@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace EDT\Querying\Utilities;
 
 use InvalidArgumentException;
-use function array_key_exists;
 use function is_array;
 use function array_slice;
 use function count;
@@ -26,7 +25,7 @@ class Iterables
      * @template R
      *
      * @param callable(V): list<R> $callable how to map each given value to an array
-     * @param array<int|string, V>      $values   the values to be mapped to an array
+     * @param array<int|string, V> $values   the values to be mapped to an array
      *
      * @return list<R>
      */
@@ -47,28 +46,23 @@ class Iterables
      *
      * Can be used to revert a {@link Iterables::mapFlat} operation.
      *
+     * @template K of int|string
      * @template V
      *
-     * @param iterable<V> $toSplit The array to split. Length must be equal to the sum of $sizes, otherwise the behavior is undefined.
-     * @param bool $preserveKeys   If the given iterable has usable keys setting this parameter to `true` will
-     *                             preserve them. Otherwise, each resulting nested array will be re-indexed
-     *                             with integer keys (starting with `0`).
+     * @param array<K, V> $toSplit The array to split. Length must be equal to the sum of $sizes, otherwise the behavior is undefined.
      * @param int ...$sizes        The intended array size of each item in the result array.
      *
-     * @return list<array<int|string,V>> The nested result array, same length as the $sizes array.
+     * @return list<array<K, V>> The nested result array, same length as the $sizes array.
      */
-    public static function split(iterable $toSplit, bool $preserveKeys, int ...$sizes): array
+    public static function split(iterable $toSplit, int ...$sizes): array
     {
         $toSplit = self::asArray($toSplit);
 
         $result = [];
         $valuesOffset = 0;
         foreach ($sizes as $count) {
-            $slice = array_slice($toSplit, $valuesOffset, $count, $preserveKeys);
-            if (!$preserveKeys) {
-                // array_slice always preserves strings keys; this extra step ensures re-indexing
-                $slice = array_values($slice);
-            }
+            /** @var array<K, V> $slice */
+            $slice = array_slice($toSplit, $valuesOffset, $count, true);
             $result[] = $slice;
             $valuesOffset += $count;
         }
@@ -131,7 +125,7 @@ class Iterables
     {
         $valueCount = count(self::asArray($values));
         if ($count !== $valueCount) {
-            throw new InvalidArgumentException("Expected exactly $count parameter, got $valueCount");
+            throw new InvalidArgumentException("Expected exactly $count parameter, got $valueCount.");
         }
     }
 
@@ -142,8 +136,12 @@ class Iterables
      */
     public static function getOnlyValue(iterable $propertyValues)
     {
-        self::assertCount(1, $propertyValues);
         $array = self::asArray($propertyValues);
+        if (1 !== count($array)) {
+            $arrayCount = count($array);
+            throw new InvalidArgumentException("Expected exactly 1 parameter, got $arrayCount.");
+        }
+
         return array_pop($array);
     }
 
@@ -156,8 +154,8 @@ class Iterables
      *
      * @template T
      * @param callable(T,T):bool $equalityComparison
-     * @param list<T> $values
-     * @return list<T|int>
+     * @param non-empty-list<T> $values
+     * @return non-empty-list<T|int<0, max>>
      */
     public static function setReferences(callable $equalityComparison, array $values): array
     {
@@ -175,35 +173,6 @@ class Iterables
             }
         }
         return $values;
-    }
-
-    /**
-     * Undoes {@link Iterables::setReferences()}.
-     *
-     * The type T of the given values must not be `int`.
-     *
-     * @template T
-     * @param list<T|int> $values
-     * @return list<T>
-     */
-    public static function setDeReferencing(array $values): array
-    {
-        return array_map(static function ($value) use ($values) {
-            if (!is_int($value)) {
-                return $value;
-            }
-
-            if (!array_key_exists($value, $values)) {
-                throw new InvalidArgumentException("Could not de-reference: missing index '$value'.");
-            }
-
-            $newValue = $values[$value];
-            if (is_int($newValue)) {
-                throw new InvalidArgumentException("De-referencing '$value' led to another reference '$newValue'.");
-            }
-
-            return $newValue;
-        }, $values);
     }
 
     /**
@@ -232,7 +201,7 @@ class Iterables
      *
      * @param array<string|int, mixed> $value
      */
-    public static function isEmpty(array $value): bool
+    public static function isEmptyArray(array $value): bool
     {
         return [] === $value;
     }

@@ -15,6 +15,11 @@ use function count;
  * This class is to be used for any {@link FunctionInterface} implementation that itself
  * calls one or multiple other functions.
  *
+ * Template parameters:
+ *
+ * * `R`: the possible return types of this function
+ * * `I`: the possible input types of this function
+ *
  * @template R
  * @template I
  * @template-implements FunctionInterface<R>
@@ -95,6 +100,7 @@ abstract class AbstractFunction implements FunctionInterface
         $propertyAliasCountables = array_map(static function (PathsBasedInterface $pathsBased): int {
             return count($pathsBased->getPropertyPaths());
         }, $this->functions);
-        return Iterables::split($propertyValues, false, ...$propertyAliasCountables);
+
+        return array_map('array_values', Iterables::split($propertyValues, ...$propertyAliasCountables));
     }
 }
