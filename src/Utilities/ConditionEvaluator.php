@@ -20,21 +20,19 @@ class ConditionEvaluator
      */
     private $tableJoiner;
 
-    /**
-     * @param PropertyAccessorInterface<object> $propertyAccessor
-     */
     public function __construct(PropertyAccessorInterface $propertyAccessor)
     {
         $this->tableJoiner = new TableJoiner($propertyAccessor);
     }
 
     /**
-     * @template T of object
-     * @template K of int|string
-     * @param array<K, T> $arrayToFilter must not contain `null` values
+     * @template TEntity of object
+     * @template TKey of int|string
+     *
+     * @param array<TKey, TEntity> $arrayToFilter must not contain `null` values
      * @param FunctionInterface<bool> $condition
      * @param FunctionInterface<bool> ...$conditions
-     * @return array<K, T> Will not contain `null` values.
+     * @return array<TKey, TEntity> Will not contain `null` values.
      */
     public function filterArray(array $arrayToFilter, FunctionInterface $condition, FunctionInterface ...$conditions): array
     {

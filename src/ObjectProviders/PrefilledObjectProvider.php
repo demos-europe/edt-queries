@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace EDT\Querying\ObjectProviders;
 
-use EDT\Querying\Pagination\OffsetBasedPagination;
+use EDT\Querying\Pagination\OffsetPagination;
 use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
-use EDT\Querying\Contracts\SliceException;
+use EDT\Querying\Contracts\PaginationException;
 use EDT\Querying\Contracts\SortException;
 use EDT\Querying\Contracts\SortMethodInterface;
-use EDT\Querying\EntityProviders\OffsetBasedEntityProviderInterface;
+use EDT\Querying\EntityProviders\OffsetPaginatingEntityProviderInterface;
 use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Sorter;
 use EDT\Querying\Contracts\ObjectProviderInterface;
@@ -20,17 +20,17 @@ use function array_slice;
  * Implements {@link ObjectProviderInterface::getObjects} by applying the parameters to an array of
  * entities that was given on instantiation and returning the result.
  *
- * @template T of object
- * @template K of int|string
- * @template-implements ObjectProviderInterface<FunctionInterface<bool>, SortMethodInterface, T>
- * @template-implements OffsetBasedEntityProviderInterface<FunctionInterface<bool>, SortMethodInterface, T>
+ * @template TEntity of object
+ * @template TKey of int|string
+ * @template-implements ObjectProviderInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>
+ * @template-implements OffsetPaginatingEntityProviderInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>
  *
  * TODO: rename to PrefilledEntityProvider
  */
-class PrefilledObjectProvider implements ObjectProviderInterface, OffsetBasedEntityProviderInterface
+class PrefilledObjectProvider implements ObjectProviderInterface, OffsetPaginatingEntityProviderInterface
 {
     /**
-     * @var array<K, T>
+     * @var array<TKey, TEntity>
      */
     private $prefilledArray;
 
@@ -45,7 +45,7 @@ class PrefilledObjectProvider implements ObjectProviderInterface, OffsetBasedEnt
     private $sorter;
 
     /**
-     * @param array<K, T>             $prefilledArray
+     * @param array<TKey, TEntity>             $prefilledArray
      * @param ConditionEvaluator|null $conditionEvaluator
      */
     // TODO: refactor default away and inject Sorter
@@ -57,7 +57,7 @@ class PrefilledObjectProvider implements ObjectProviderInterface, OffsetBasedEnt
     }
 
     /**
-     * @return array<K, T>
+     * @return array<TKey, TEntity>
      *
      * @inheritDoc
      */
@@ -74,11 +74,11 @@ class PrefilledObjectProvider implements ObjectProviderInterface, OffsetBasedEnt
     /**
      * @param list<FunctionInterface<bool>> $conditions
      * @param list<SortMethodInterface>     $sortMethods
-     * @param OffsetBasedPagination|null    $pagination
+     * @param OffsetPagination|null         $pagination
      *
-     * @return array<K, T>
+     * @return array<TKey, TEntity>
      *
-     * @throws SliceException
+     * @throws PaginationException
      * @throws SortException
      */
     public function getEntities(array $conditions, array $sortMethods, ?object $pagination): array
@@ -94,9 +94,9 @@ class PrefilledObjectProvider implements ObjectProviderInterface, OffsetBasedEnt
     }
 
     /**
-     * @param array<K, T> $list
+     * @param array<TKey, TEntity> $list
      * @param list<SortMethodInterface> $sortMethods
-     * @return array<K, T>
+     * @return array<TKey, TEntity>
      *
      * @throws SortException
      */
@@ -110,10 +110,10 @@ class PrefilledObjectProvider implements ObjectProviderInterface, OffsetBasedEnt
     }
 
     /**
-     * @param array<K, T>                   $list
+     * @param array<TKey, TEntity>                   $list
      * @param list<FunctionInterface<bool>> $conditions
      *
-     * @return array<K,T>
+     * @return array<TKey,TEntity>
      */
     protected function filter(array $list, array $conditions): array
     {
@@ -125,17 +125,18 @@ class PrefilledObjectProvider implements ObjectProviderInterface, OffsetBasedEnt
     }
 
     /**
-     * @param array<K, T> $list
-     * @return array<K, T>
-     * @throws SliceException
+     * @param array<TKey, TEntity> $list
+     *
+     * @return array<TKey, TEntity>
+     * @throws PaginationException
      */
     protected function slice(array $list, int $offset, ?int $limit): array
     {
         if (0 > $offset) {
-            throw SliceException::negativeOffset($offset);
+            throw PaginationException::negativeOffset($offset);
         }
         if (0 > $limit) {
-            throw SliceException::negativeLimit($limit);
+            throw PaginationException::negativeLimit($limit);
         }
         if (0 !== $offset || null !== $limit) {
             $list = array_slice($list, $offset, $limit);
