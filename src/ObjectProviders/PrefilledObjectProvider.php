@@ -45,15 +45,13 @@ class PrefilledObjectProvider implements ObjectProviderInterface, OffsetPaginati
     private $sorter;
 
     /**
-     * @param array<TKey, TEntity>             $prefilledArray
-     * @param ConditionEvaluator|null $conditionEvaluator
+     * @param array<TKey, TEntity> $prefilledArray
      */
-    // TODO: refactor default away and inject Sorter
-    public function __construct(PropertyAccessorInterface $propertyAccessor, array $prefilledArray, ConditionEvaluator $conditionEvaluator = null)
+    public function __construct(ConditionEvaluator $conditionEvaluator, Sorter $sorter, array $prefilledArray)
     {
         $this->prefilledArray = $prefilledArray;
-        $this->conditionEvaluator = $conditionEvaluator ?? new ConditionEvaluator($propertyAccessor);
-        $this->sorter = new Sorter($propertyAccessor);
+        $this->conditionEvaluator = $conditionEvaluator;
+        $this->sorter = $sorter;
     }
 
     /**
@@ -126,18 +124,14 @@ class PrefilledObjectProvider implements ObjectProviderInterface, OffsetPaginati
 
     /**
      * @param array<TKey, TEntity> $list
+     * @param int<0, max>          $offset
+     * @param int<0, max>|null     $limit
      *
      * @return array<TKey, TEntity>
      * @throws PaginationException
      */
     protected function slice(array $list, int $offset, ?int $limit): array
     {
-        if (0 > $offset) {
-            throw PaginationException::negativeOffset($offset);
-        }
-        if (0 > $limit) {
-            throw PaginationException::negativeLimit($limit);
-        }
         if (0 !== $offset || null !== $limit) {
             $list = array_slice($list, $offset, $limit);
         }
