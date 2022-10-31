@@ -12,15 +12,9 @@ use EDT\Querying\Contracts\PropertyPathAccessInterface;
  */
 class PathInfo
 {
-    /**
-     * @var PropertyPathAccessInterface
-     */
-    private $path;
+    private PropertyPathAccessInterface $path;
 
-    /**
-     * @var bool
-     */
-    private $toManyAllowed;
+    private bool $toManyAllowed;
 
     public function __construct(PropertyPathAccessInterface $path, bool $toManyAllowed)
     {
@@ -55,8 +49,9 @@ class PathInfo
      */
     public static function getPropertyPaths(PathsBasedInterface $pathsBased): array
     {
-        return array_map(static function (PathInfo $pathInfo): PropertyPathAccessInterface {
-            return $pathInfo->path;
-        }, $pathsBased->getPropertyPaths());
+        return array_map(
+            static fn (PathInfo $pathInfo): PropertyPathAccessInterface => $pathInfo->path,
+            $pathsBased->getPropertyPaths()
+        );
     }
 }

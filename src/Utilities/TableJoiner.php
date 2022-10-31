@@ -14,7 +14,7 @@ use function is_array;
 use function is_int;
 
 /**
- * @psalm-type Ref = int<0,max>
+ * @psalm-type Ref = int<0, max>
  * @psalm-type Row = list<mixed>
  * @psalm-type NonEmptyRow = non-empty-list<mixed>
  * @psalm-type Column = list<mixed>
@@ -24,10 +24,7 @@ use function is_int;
  */
 class TableJoiner
 {
-    /**
-     * @var PropertyAccessorInterface
-     */
-    private $propertyAccessor;
+    private PropertyAccessorInterface $propertyAccessor;
 
     public function __construct(PropertyAccessorInterface $propertyAccessor)
     {
@@ -99,10 +96,15 @@ class TableJoiner
                 throw new InvalidArgumentException("Custom path contexts are not supported in PHP evaluation yet: '{$propertyPath->getAsNamesInDotNotation()}'");
             }
 
+            $propertyPathNames = $propertyPath->getAsNames();
+            if ([] === $propertyPathNames) {
+                throw new InvalidArgumentException("Path must not be empty.");
+            }
+
             return $this->propertyAccessor->getValuesByPropertyPath(
                 $target,
                 $propertyPath->getAccessDepth(),
-                ...iterator_to_array($propertyPath)
+                $propertyPathNames
             );
         }, $propertyPaths);
 
@@ -177,9 +179,11 @@ class TableJoiner
             if (!is_array($rightColumn)) {
                 throw new InvalidArgumentException("Most left column must not be a reference, was: '$rightColumn'.");
             }
-            return array_map(static function ($value): array {
-                return [$value];
-            }, $rightColumn);
+
+            return array_map(
+                static fn ($value): array => [$value],
+                $rightColumn
+            );
         }
 
         // we do have more columns to step into
@@ -209,9 +213,10 @@ class TableJoiner
     private function rebuildTable($rightColumn, array $wipTable): array
     {
         if (is_array($rightColumn)) {
-            $nestedRows = array_map(function ($value) use ($wipTable): array {
-                return $this->addValueToRows($wipTable, $value);
-            }, $rightColumn);
+            $nestedRows = array_map(
+                fn ($value): array => $this->addValueToRows($wipTable, $value),
+                $rightColumn
+            );
 
             return array_merge(...$nestedRows);
         }

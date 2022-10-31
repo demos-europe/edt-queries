@@ -17,22 +17,19 @@ class ConditionDefinition
     /**
      * @var list<TCondition>
      */
-    protected $conditions = [];
+    protected array $conditions = [];
 
     /**
      * @var list<ConditionDefinition<TCondition>>
      */
-    protected $subDefinitions = [];
+    protected array $subDefinitions = [];
 
     /**
      * @var PathsBasedConditionFactoryInterface<TCondition>&PathsBasedConditionGroupFactoryInterface<TCondition>
      */
-    protected $conditionFactory;
+    protected object $conditionFactory;
 
-    /**
-     * @var bool
-     */
-    protected $andConjunction;
+    protected bool $andConjunction;
 
     /**
      * @param PathsBasedConditionFactoryInterface<TCondition>&PathsBasedConditionGroupFactoryInterface<TCondition> $conditionFactory
@@ -285,15 +282,14 @@ class ConditionDefinition
     }
 
     /**
-     * @param non-empty-list<mixed> $values
-     * @param non-empty-string       $property
-     * @param non-empty-string       ...$properties
+     * @param non-empty-list<mixed>           $values
+     * @param non-empty-list<non-empty-string> $properties
      *
      * @return $this
      */
-    public function allValuesPresentInMemberListProperties(array $values, string $property, string ...$properties): self
+    public function allValuesPresentInMemberListProperties(array $values, array $properties): self
     {
-        return $this->add($this->conditionFactory->allValuesPresentInMemberListProperties($values, $property, ...$properties));
+        return $this->add($this->conditionFactory->allValuesPresentInMemberListProperties($values, $properties));
     }
 
     /**

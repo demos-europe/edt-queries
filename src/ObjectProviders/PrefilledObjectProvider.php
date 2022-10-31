@@ -31,17 +31,11 @@ class PrefilledObjectProvider implements ObjectProviderInterface, OffsetPaginati
     /**
      * @var array<TKey, TEntity>
      */
-    private $prefilledArray;
+    private array $prefilledArray;
 
-    /**
-     * @var ConditionEvaluator
-     */
-    private $conditionEvaluator;
+    private ConditionEvaluator $conditionEvaluator;
 
-    /**
-     * @var Sorter
-     */
-    private $sorter;
+    private Sorter $sorter;
 
     /**
      * @param array<TKey, TEntity> $prefilledArray
@@ -107,10 +101,10 @@ class PrefilledObjectProvider implements ObjectProviderInterface, OffsetPaginati
     }
 
     /**
-     * @param array<TKey, TEntity>                   $list
+     * @param array<TKey, TEntity>          $list
      * @param list<FunctionInterface<bool>> $conditions
      *
-     * @return array<TKey,TEntity>
+     * @return array<TKey, TEntity>
      */
     protected function filter(array $list, array $conditions): array
     {

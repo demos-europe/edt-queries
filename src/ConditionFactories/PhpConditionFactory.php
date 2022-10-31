@@ -193,12 +193,17 @@ class PhpConditionFactory implements PathsBasedConditionFactoryInterface, PathsB
         );
     }
 
-    public function allValuesPresentInMemberListProperties(array $values, string $property, string ...$properties): PathsBasedInterface
+    public function allValuesPresentInMemberListProperties(array $values, array $properties): PathsBasedInterface
     {
-        $propertyPaths = PropertyPath::createIndexSaltedPaths(count($values), PropertyPathAccessInterface::DIRECT, $property, ...$properties);
-        $equalityPairs = array_map(static function ($value, PropertyPathAccessInterface $propertyPath): FunctionInterface {
-            return new AllEqual(new Property($propertyPath), new Value($value));
-        }, $values, $propertyPaths);
+        $propertyPaths = PropertyPath::createIndexSaltedPaths(count($values), PropertyPathAccessInterface::DIRECT, $properties);
+        $equalityPairs = array_map(
+            static fn ($value, PropertyPathAccessInterface $propertyPath): FunctionInterface => new AllEqual(
+                new Property($propertyPath),
+                new Value($value)
+            ),
+            $values,
+            $propertyPaths
+        );
 
         return new AllEqual(new Value(true), ...$equalityPairs);
     }
