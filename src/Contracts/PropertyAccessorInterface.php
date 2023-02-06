@@ -11,8 +11,8 @@ interface PropertyAccessorInterface
 {
     /**
      * Will get a single value following the given path. To get multiple values refer to
-     * {@link PropertyAccessorInterface::getValuesByPropertyPath()}. 
-     * 
+     * {@link PropertyAccessorInterface::getValuesByPropertyPath()}.
+     *
      * The final target of the path can be any type (primitive, object, array, ...) but the
      * preceding path parts must be single values (i.e. not lists, not arrays, not collections).
      *
@@ -24,10 +24,11 @@ interface PropertyAccessorInterface
      * `'authors', 'name'` you may get errors or undesired/unexpected behavior.
      *
      * If any property in results in a `null` value then `null` will be returned.
-     * 
-     * @return mixed|null
+     *
+     * @param non-empty-string $property
+     * @param non-empty-string ...$properties
      */
-    public function getValueByPropertyPath(?object $target, string $property, string ...$properties);
+    public function getValueByPropertyPath(?object $target, string $property, string ...$properties): mixed;
 
     /**
      * This method can be used as an alternative to
@@ -48,8 +49,7 @@ interface PropertyAccessorInterface
     /**
      * Sets a property values of the given target.
      *
-     * @param mixed|null       $value
      * @param non-empty-string $propertyName
      */
-    public function setValue(object $target, $value, string $propertyName): void;
+    public function setValue(object $target, mixed $value, string $propertyName): void;
 }

@@ -24,12 +24,9 @@ use function is_int;
  */
 class TableJoiner
 {
-    private PropertyAccessorInterface $propertyAccessor;
-
-    public function __construct(PropertyAccessorInterface $propertyAccessor)
-    {
-        $this->propertyAccessor = $propertyAccessor;
-    }
+    public function __construct(
+        private readonly PropertyAccessorInterface $propertyAccessor
+    ) {}
 
     /**
      * Gets the values from the given object the property paths point to.
@@ -40,7 +37,7 @@ class TableJoiner
      * array).
      *
      * However, the returned array containing the nested arrays will be created in the same manner
-     * as an SQL left join. Meaning if $object is a blog article that has 5 comments and
+     * as an SQL left join. Meaning if `$object` is a blog article that has 3 comments and
      * a property path accesses the comment texts then the returned array will have
      * 3 items: `[['text1'], ['text2'], ['text3']]`
      *
@@ -87,7 +84,7 @@ class TableJoiner
 
         // this is an array of arrays as each property path results in an array as it may access a
         // to-many property with UNPACK enabled
-        $valuesOfPropertyPaths = array_map(function ($propertyPath) use ($target) {
+        $valuesOfPropertyPaths = array_map(function (PropertyPathAccessInterface|int $propertyPath) use ($target): array|int {
             if (is_int($propertyPath)) {
                 return $propertyPath;
             }
@@ -122,7 +119,7 @@ class TableJoiner
         $emptyColumns = array_filter($deReferencedColumns, [$this, 'isEmptyArray']);
 
         // Remove empty columns and references to empty columns
-        /** @var list<NonEmptyColumn|Ref> $nonEmptyColumns */
+        /** @var list<NonEmptyColumn|Ref> $nonEmptyColumns TODO: remove this line when phpstan can detect the type by itself */
         $nonEmptyColumns = array_values(array_diff_key($columns, $emptyColumns));
 
         // if there are no columns we have nothing to do.
@@ -131,12 +128,14 @@ class TableJoiner
         }
 
         // Building the cartesian product of the other columns is left to the
-        // recursion, we only deal with the right column here.
-        $rightColumn = array_pop($nonEmptyColumns);
-        $product = $this->cartesianProductRecursive($rightColumn, $nonEmptyColumns);
+        // recursion.
+        $mostLeftColumn = array_shift($nonEmptyColumns);
+        if (!is_array($mostLeftColumn)) {
+            throw new InvalidArgumentException("Most left column must not be a reference, was: '$mostLeftColumn'.");
+        }
+        $product = $this->cartesianProductRecursive($mostLeftColumn, $nonEmptyColumns);
 
-        // TODO: remove type-hint when phpstan can detect that `array_keys(list<X>)` results in` list<int<0, max>>`
-        /** @var list<Ref> $emptyColumnIndices */
+        /** @var list<Ref> $emptyColumnIndices TODO: remove this line when phpstan can detect that `array_keys(list<X>)` results in` list<int<0, max>>` */
         $emptyColumnIndices = array_values(array_keys($emptyColumns));
 
         return $this->reAddEmptyColumnsAsNull($product, $emptyColumnIndices);
@@ -162,29 +161,22 @@ class TableJoiner
     /**
      * No given column must be empty, as empty columns need to be handled in a special way.
      *
-     * @param NonEmptyColumn|Ref       $rightColumn
+     * @param NonEmptyColumn $mostLeftColumn
      * @param list<NonEmptyColumn|Ref> $leftColumns
      *
      * @return non-empty-list<NonEmptyRow>
      */
-    protected function cartesianProductRecursive($rightColumn, array $leftColumns): array
+    protected function cartesianProductRecursive(array $mostLeftColumn, array $leftColumns): array
     {
         // This is not just a shortcut but the place where the result table is
-        // initially filled to be expanded in other recursion steps.
+        // initially filled to be expanded in previous recursion steps.
         if ([] === $leftColumns) {
-            if (!is_array($rightColumn)) {
-                throw new InvalidArgumentException("Most left column must not be a reference, was: '$rightColumn'.");
-            }
-
-            return array_map(
-                static fn ($value): array => [$value],
-                $rightColumn
-            );
+            return array_map(static fn ($value): array => [$value], $mostLeftColumn);
         }
 
-        // we do have more columns to step into
-        $nextRightColumn = array_pop($leftColumns);
-        $wipTable = $this->cartesianProductRecursive($nextRightColumn, $leftColumns);
+        // we do have at least one more columns to step into
+        $rightColumn = array_pop($leftColumns);
+        $wipTable = $this->cartesianProductRecursive($mostLeftColumn, $leftColumns);
 
         return $this->rebuildTable($rightColumn, $wipTable);
     }
@@ -206,7 +198,7 @@ class TableJoiner
      *
      * @return non-empty-list<NonEmptyRow>
      */
-    private function rebuildTable($rightColumn, array $wipTable): array
+    private function rebuildTable(array|int $rightColumn, array $wipTable): array
     {
         if (is_array($rightColumn)) {
             $nestedRows = array_map(
@@ -224,11 +216,10 @@ class TableJoiner
      * Appends the given value to all rows in the given table.
      *
      * @param non-empty-list<NonEmptyRow> $rows
-     * @param mixed                       $value
      *
      * @return non-empty-list<NonEmptyRow>
      */
-    private function addValueToRows(array $rows, $value): array
+    private function addValueToRows(array $rows, mixed $value): array
     {
         array_walk($rows, static function (array &$row) use ($value): void {
             $row[] = $value;
@@ -288,14 +279,14 @@ class TableJoiner
     private function setReferencesGeneric(callable $equalityComparison, array $values): array
     {
         $count = count($values);
-        for ($i = 0; $i < $count; $i++) {
-            $valueToCheckIfToUseAsIndex = $values[$i];
+        for ($fullLoopIndex = 0; $fullLoopIndex < $count; $fullLoopIndex++) {
+            $valueToCheckIfToUseAsIndex = $values[$fullLoopIndex];
             if (!is_int($valueToCheckIfToUseAsIndex)) {
-                for ($j = $i + 1; $j < $count; $j++) {
-                    $valueToCheckAgainst = $values[$j];
+                for ($remainLoopIndex = $fullLoopIndex + 1; $remainLoopIndex < $count; $remainLoopIndex++) {
+                    $valueToCheckAgainst = $values[$remainLoopIndex];
                     if (!is_int($valueToCheckAgainst)
                         && $equalityComparison($valueToCheckIfToUseAsIndex, $valueToCheckAgainst)) {
-                        $values[$j] = $i;
+                        $values[$remainLoopIndex] = $fullLoopIndex;
                     }
                 }
             }
@@ -335,10 +326,12 @@ class TableJoiner
      * Will iterate through the given array and inserts the given value into each of its values
      * (which are expected to be an array too).
      *
-     * @param array<string|int, list<mixed>> $array
-     * @param mixed $value
+     * @template TValue
+     *
+     * @param array<string|int, list<TValue>> $array
+     * @param TValue $value
      */
-    private function insertValue(array &$array, int $index, $value): void
+    private function insertValue(array &$array, int $index, mixed $value): void
     {
         array_walk($array, static function (&$arrayValue) use ($index, $value): void {
             array_splice($arrayValue, $index, 0, [$value]);
@@ -354,7 +347,7 @@ class TableJoiner
      */
     private function setDeReferencing(array $columns): array
     {
-        return array_map(static function ($column) use ($columns) {
+        return array_map(static function (array|int $column) use ($columns) {
             if (!is_int($column)) {
                 return $column;
             }

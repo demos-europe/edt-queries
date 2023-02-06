@@ -13,17 +13,11 @@ use function is_string;
 abstract class AbstractSortMethod implements SortMethodInterface
 {
     /**
-     * @var FunctionInterface<mixed>
-     */
-    protected FunctionInterface $target;
-
-    /**
      * @param FunctionInterface<mixed> $target
      */
-    public function __construct(FunctionInterface $target)
-    {
-        $this->target = $target;
-    }
+    public function __construct(
+        protected FunctionInterface $target
+    ) {}
 
     public function getPropertyPaths(): array
     {
@@ -50,7 +44,7 @@ abstract class AbstractSortMethod implements SortMethodInterface
      *
      * @return int
      */
-    protected function evaluateSinglePath($propertyValueA, $propertyValueB): int
+    protected function evaluateSinglePath(string|int|float|null $propertyValueA, string|int|float|null $propertyValueB): int
     {
         if (null === $propertyValueA && null === $propertyValueB) {
             return 0;

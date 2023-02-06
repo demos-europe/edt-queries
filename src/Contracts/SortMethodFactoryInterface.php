@@ -5,25 +5,25 @@ declare(strict_types=1);
 namespace EDT\Querying\Contracts;
 
 /**
- * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TSorting of PathsBasedInterface
  */
 interface SortMethodFactoryInterface
 {
     /**
-     * @param non-empty-list<non-empty-string>|PropertyPathInterface $properties
+     * @param non-empty-string|non-empty-list<non-empty-string>|PropertyPathInterface $properties
      *
      * @return TSorting
      *
      * @throws PathException
      */
-    public function propertyAscending($properties): PathsBasedInterface;
+    public function propertyAscending(string|array|PropertyPathInterface $properties): PathsBasedInterface;
 
     /**
-     * @param non-empty-list<non-empty-string>|PropertyPathInterface $properties
+     * @param non-empty-string|non-empty-list<non-empty-string>|PropertyPathInterface $properties
      *
      * @return TSorting
      *
      * @throws PathException
      */
-    public function propertyDescending($properties): PathsBasedInterface;
+    public function propertyDescending(string|array|PropertyPathInterface $properties): PathsBasedInterface;
 }

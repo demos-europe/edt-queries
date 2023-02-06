@@ -10,19 +10,15 @@ use EDT\Querying\PropertyPaths\PathInfo;
 use Throwable;
 use Webmozart\Assert\Assert;
 use function count;
-use function Safe\usort;
 
 /**
  * @internal
  */
 class Sorter
 {
-    private TableJoiner $tableJoiner;
-
-    public function __construct(TableJoiner $tableJoiner)
-    {
-        $this->tableJoiner = $tableJoiner;
-    }
+    public function __construct(
+        private readonly TableJoiner $tableJoiner
+    ) {}
 
     /**
      * @template TKey of int|string
@@ -44,7 +40,7 @@ class Sorter
                     $propertyValuesRowsA = $this->tableJoiner->getValueRows($valueA, $propertyPaths);
                     $propertyValuesRowsB = $this->tableJoiner->getValueRows($valueB, $propertyPaths);
                     /**
-                     * Sorting by relationships is not supported yet as it is not as easy to implement as one might think.
+                     * Sorting by to-many relationships is not supported yet as it is not as easy to implement as one might think.
                      * Which of the values should be used for the comparison. See also (basically) the same problem in SQL:
                      * {@see https://www.programmerinterview.com/database-sql/sql-select-distinct-and-order-by/}
                      */
