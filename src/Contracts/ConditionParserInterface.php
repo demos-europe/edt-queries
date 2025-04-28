@@ -13,11 +13,11 @@ use EDT\Querying\ConditionParsers\Drupal\DrupalFilterParser;
  * class.
  *
  * TODO: evaluate if really needed, if not, remove and use {@link DrupalConditionFactoryInterface} directly
- * TODO: rename this class and child classes and their methods away from "Parser", as an actual parser works differently
+ * TODO (#130): rename this class and child classes and their methods away from "Parser", as an actual parser works differently
  *
  * @phpstan-import-type DrupalFilterCondition from DrupalFilterParser
  *
- * @template TCondition of PathsBasedInterface
+ * @template TCondition
  */
 interface ConditionParserInterface
 {
@@ -26,5 +26,5 @@ interface ConditionParserInterface
      *
      * @return TCondition
      */
-    public function parseCondition(array $condition): PathsBasedInterface;
+    public function parseCondition(array $condition);
 }
